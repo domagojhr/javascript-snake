@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.block {
+	display:block;
+	float:left;
+	border:solid 1px silver;
+	width:18px;
+	height:18px;
+}
+
+.row {
+	display:block;
+	float:left;
+	width:100%;
+}
+
+#result {
+	font-family: sans-serif;
+	font-size: 20px;
+}
+
+#count {
+	display: block;
+    font-size: 50px;
+    font-weight: 700;
+	width:60px;
+	text-align:center;
+    position: absolute;
+    left: 180px;
+    top: 150px;
+    font-family: sans-serif;
+    background: yellow;
+}
+</style>
+</head>
+<body>
+<script>
+draw=""
+document.write=function(s){
+    var scripts = document.getElementsByTagName('script');
+    var lastScript = scripts[scripts.length-1];
+    lastScript.insertAdjacentHTML("beforebegin", s);
+}
+x=20
+y=20
+score=0
+counter=3
+duzinaZmije = 2
+brzinaZmije = 100
+D = "U"
+cD = D
+alive = true;
+let applePosition = []
+let positionHistory = []
+
+function showScore(){
+	rezElement.innerHTML = "Result: " + score
+}
+
+function setInitial(){
+	PositionX = Math.floor(x/2)
+	PositionY = Math.floor(y/2)
+	positionHistory.push([PositionX,PositionY])
+	markBlock();
+	showScore();
+}
+
+function markBlock(){
+	if(alive){
+	var allBlocks = document.getElementsByClassName("block");
+	for(i=0;i<allBlocks.length;i++){
+		allBlocks[i].style.background = "white";	
+	}
+	for(i=0;i<(positionHistory.length);i++){
+		document.getElementById(positionHistory[i][1] + "-" + positionHistory[i][0]).style.background = "green";
+	}
+	if(applePosition.length==1){
+		document.getElementById(applePosition[0][1] + "-" + applePosition[0][0]).style.background = "red";
+	}
+	}
+}
+
+function spawnApple(){
+	if(applePosition.length==0 && alive){
+		applePosition.push([Math.ceil(Math.random()*x),Math.ceil(Math.random()*y)])
+	}
+}
+
+function recordPosition(){
+	if(positionHistory.length<=duzinaZmije && alive){
+		positionHistory.unshift([PositionX,PositionY])
+	}
+	if(positionHistory.length>duzinaZmije && alive){
+		positionHistory.unshift([PositionX,PositionY])
+		positionHistory.pop();
+	}
+}
+
+function detectCollision(){
+	alive=true
+	for(i=2;i<positionHistory.length;i++){
+	if(alive){
+			if(positionHistory[i][0] == PositionX && positionHistory[i][1] == PositionY){
+				alive=false
+			}
+			if(PositionX > x || PositionY > y || PositionY*PositionX == 0){
+				alive=false
+			}
+		}
+}
+	if(applePosition[0][0] == PositionX && applePosition[0][1] == PositionY){
+		applePosition=[];
+		duzinaZmije++
+		score=score+duzinaZmije
+	}
+}	
+
+function move(){
+		if(alive){
+			switch(D) {
+			case "R":
+				++PositionX
+				cD="R"
+				break;
+			case "L":
+				--PositionX
+				cD="L"
+				break;
+			case "D":
+				--PositionY
+				cD="D"
+				break;
+			case "U":
+				++PositionY
+				cD="U"
+				break;
+			}
+}
+}
+
+draw+="<div id=\"count\"></div>"
+for(a=y;a>0;a--){
+	draw+="<div class=\"row\">"
+		for(b=1;b<=x;b++){
+	draw+="<div id=\"" + a + "-" + b + "\" class=\"block\" ></div>"
+}
+	draw+="</div>"
+}
+draw+="<div id=\"result\"></div>"
+document.write(draw);
+var rezElement = document.getElementById("result");
+var countElement = document.getElementById("count");	
+
+document.onkeydown = function(e) {
+	if(e.keyCode == 37 && cD != "R"){
+        D="L";
+	}
+	if(e.keyCode == 38 && cD != "D"){
+        D="U";
+	}
+	if(e.keyCode == 39 && cD != "L"){
+        D="R";
+	}
+	if(e.keyCode == 40 && cD != "U") {
+        D="D";
+	}
+};
+
+var startGameCountdown = setInterval(function(){
+countElement.innerHTML = counter
+counter--
+if (counter === -1) {
+	clearInterval(startGameCountdown);
+	countElement.innerHTML = ""
+	go();
+}
+}, 1000);
+
+function go(){
+if(alive) {
+	setInitial();
+	var refreshSnake = setInterval(() => {
+	spawnApple();
+	move();
+	recordPosition();
+	detectCollision();
+	markBlock();
+	showScore();
+	if(!alive){
+	clearInterval(refreshSnake);
+		if(confirm('Game over :(\nYour result: ' + score + '\nNew game?')){
+			window.location.reload();  
+		}
+		}
+	}, 
+	brzinaZmije
+	);
+}
+}
+</script>
+</body></html>
